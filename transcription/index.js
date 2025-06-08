@@ -31,7 +31,7 @@ app.post('/analyze', upload.single('video'), async (req, res) => {
     );
 
     const transcript = response.data.text;
-    res.json({ transcript });
+
   } catch (err) {
     console.error(err.response ? err.response.data : err);
     res.status(500).json({ error: 'Failed to transcribe audio' });

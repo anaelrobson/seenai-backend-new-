@@ -7,22 +7,14 @@ This repo contains two independent Express services that can be deployed separat
 ### `/transcription`
 - Endpoint: `POST /analyze`
 - Accepts: video file (form-data, key = `video`)
-- Sends the video to OpenAI Whisper API and returns the transcript.
+- Sends the video to OpenAI Whisper and fetches tone analysis from the tone service
 
 ### `/tone`
 - Endpoint: `POST /analyze-tone`
 - Accepts: plain text transcript
-- (Currently returns placeholder tone + summary — will be updated to use GPT-4.)
+- Computes raw speech metrics + sends it to OpenAI GPT for analysis
 
-Each folder has its own `package.json` and can be deployed independently by pointing Render to the correct subdirectory.
+Each folder has its own `package.json` and can be deployed independently.
 
----
-
-## Running Locally
-
-### Transcription
-```bash
-cd transcription
-npm install
-npm start
-## Services
+Both services expect `OPENAI_API_KEY` in the environment.  
+The transcription service can optionally use `TONE_API_URL` to override the URL of the tone analysis endpoint.
