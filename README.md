@@ -2,11 +2,19 @@
 
 This repo contains two independent Express services that can be deployed separately on Render.
 
-- **transcription/** – exposes `/analyze` to send a video file to OpenAI Whisper, fetch tone analysis from the tone service and return both results.
-- **tone/** – exposes `/analyze-tone` which accepts a transcript, computes speaking metrics and asks OpenAI for a tone analysis.
+## Services
 
-Each folder has its own `package.json` and can be deployed individually.
+### `/transcription`
+- Endpoint: `POST /analyze`
+- Accepts: video file (form-data, key = `video`)
+- Sends the video to OpenAI Whisper and fetches tone analysis from the tone service
 
-Both services expect `OPENAI_API_KEY` in the environment. The transcription
-service can optionally use `TONE_API_URL` to override the URL of the tone
-analysis endpoint.
+### `/tone`
+- Endpoint: `POST /analyze-tone`
+- Accepts: plain text transcript
+- Computes raw speech metrics + sends it to OpenAI GPT for analysis
+
+Each folder has its own `package.json` and can be deployed independently.
+
+Both services expect `OPENAI_API_KEY` in the environment.  
+The transcription service can optionally use `TONE_API_URL` to override the URL of the tone analysis endpoint.

@@ -1,30 +1,3 @@
-require('dotenv').config();
-const express = require('express');
-const axios = require('axios');
-
-const app = express();
-app.use(express.json());
-
-function calculateMetrics(transcript) {
-  const words = transcript.trim().split(/\s+/);
-  const wordCount = words.length;
-  const sentences = transcript.split(/[.!?]+/).filter(Boolean);
-  const sentenceCount = sentences.length || 1;
-  const fillerWords = ['um', 'uh', 'like', 'you know', 'i mean'];
-  const fillerRegex = new RegExp(`\\b(${fillerWords.join('|')})\\b`, 'gi');
-  const fillerCount = (transcript.match(fillerRegex) || []).length;
-  const pauseCount = (transcript.match(/\.\.\.|[.!?]/g) || []).length;
-  const avgSentenceLength = wordCount / sentenceCount;
-  const estimatedMinutes = (sentenceCount * 5) / 60; // assume ~5s per sentence
-  const wordsPerMinute = estimatedMinutes ? wordCount / estimatedMinutes : wordCount;
-  return {
-    words_per_minute: Math.round(wordsPerMinute),
-    filler_word_count: fillerCount,
-    pause_count: pauseCount,
-    average_sentence_length: Number(avgSentenceLength.toFixed(2)),
-  };
-}
-
 app.post('/analyze-tone', async (req, res) => {
   const { transcript } = req.body;
   if (typeof transcript !== 'string') {
@@ -64,13 +37,13 @@ app.post('/analyze-tone', async (req, res) => {
     let data = response.data.choices[0].message.content.trim();
     try {
       data = JSON.parse(data);
-    } catch (e) {
-      // If parsing fails, wrap it in object
+    } catch {
       data = { output: data };
     }
+
     res.json({ ...data, raw_metrics: metrics });
   } catch (err) {
-    console.error(err.response ? err.response.data : err);
+    console.error(err.response?.data || err);
     res.status(500).json({ error: 'Failed to analyze tone' });
   }
 });
