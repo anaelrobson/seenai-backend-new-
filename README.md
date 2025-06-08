@@ -1,29 +1,28 @@
 # seenai-backend-new
 
-Simple Express.js backend that exposes a `/analyze` endpoint to transcribe video files using OpenAI's Whisper API.
+This repo contains two independent Express services that can be deployed separately on Render.
 
-## Setup
+## Services
 
+### `/transcription`
+- Endpoint: `POST /analyze`
+- Accepts: video file (form-data, key = `video`)
+- Sends the video to OpenAI Whisper API and returns the transcript.
+
+### `/tone`
+- Endpoint: `POST /analyze-tone`
+- Accepts: plain text transcript
+- (Currently returns placeholder tone + summary — will be updated to use GPT-4.)
+
+Each folder has its own `package.json` and can be deployed independently by pointing Render to the correct subdirectory.
+
+---
+
+## Running Locally
+
+### Transcription
 ```bash
+cd transcription
 npm install
-```
-
-Create a `.env` file with your OpenAI API key:
-
-```
-OPENAI_API_KEY=your_api_key_here
-```
-
-## Usage
-
-Start the server:
-
-```bash
 npm start
-```
-
-Send a POST request to `/analyze` with a form field named `video` containing the video file. The service will return JSON:
-
-```json
-{ "transcript": "..." }
-```
+## Services
