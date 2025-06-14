@@ -7,6 +7,7 @@ const FormData = require('form-data');
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
 
+od76wv-codex/build-backend-to-analyze-video-with-whisper-api
 function calculateMetrics(transcript) {
   const words = transcript.trim().split(/\s+/);
   const wordCount = words.length;
@@ -66,6 +67,7 @@ async function analyzeTone(transcript) {
   return { ...data, raw_metrics: metrics };
 }
 
+ main
 app.post('/analyze', upload.single('video'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No video file uploaded' });
@@ -92,11 +94,23 @@ app.post('/analyze', upload.single('video'), async (req, res) => {
 
     const transcript = response.data.text;
 
+ od76wv-codex/build-backend-to-analyze-video-with-whisper-api
     // Analyze the transcript locally for tone
     const toneData = await analyzeTone(transcript);
 
     // Combine transcript with tone analysis response
     res.json({ transcript, ...toneData });
+
+    // Send the transcript to the tone analysis service
+    const toneRes = await axios.post(
+      process.env.TONE_API_URL ||
+        'https://seenai-tone.onrender.com/analyze-tone',
+      { transcript }
+    );
+
+    // Combine transcript with tone analysis response
+    res.json({ transcript, ...toneRes.data });
+main
   } catch (err) {
     console.error(err.response ? err.response.data : err);
     res.status(500).json({ error: 'Failed to transcribe audio' });
