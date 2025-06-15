@@ -1,3 +1,4 @@
+bohc7z-codex/build-backend-to-analyze-video-with-whisper-api
 require('dotenv').config();
 const express = require('express');
 const transcriptionRouter = require('./routes/transcription');
@@ -14,3 +15,6 @@ app.listen(PORT, () => {
 });
 
 module.exports = app;
+
+require('./transcription');
+ main
