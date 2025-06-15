@@ -7,6 +7,67 @@ const FormData = require('form-data');
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
 
+od76wv-codex/build-backend-to-analyze-video-with-whisper-api
+function calculateMetrics(transcript) {
+  const words = transcript.trim().split(/\s+/);
+  const wordCount = words.length;
+  const sentences = transcript.split(/[.!?]+/).filter(Boolean);
+  const sentenceCount = sentences.length || 1;
+  const fillerWords = ['um', 'uh', 'like', 'you know', 'i mean'];
+  const fillerRegex = new RegExp(`\\b(${fillerWords.join('|')})\\b`, 'gi');
+  const fillerCount = (transcript.match(fillerRegex) || []).length;
+  const pauseCount = (transcript.match(/\.\.\.|[.!?]/g) || []).length;
+  const avgSentenceLength = wordCount / sentenceCount;
+  const estimatedMinutes = (sentenceCount * 5) / 60; // assume ~5s per sentence
+  const wordsPerMinute = estimatedMinutes ? wordCount / estimatedMinutes : wordCount;
+  return {
+    words_per_minute: Math.round(wordsPerMinute),
+    filler_word_count: fillerCount,
+    pause_count: pauseCount,
+    average_sentence_length: Number(avgSentenceLength.toFixed(2)),
+  };
+}
+
+async function analyzeTone(transcript) {
+  const metrics = calculateMetrics(transcript);
+
+  const prompt = [
+    {
+      role: 'system',
+      content: 'You analyze a speaking transcript and return tone information in JSON.'
+    },
+    {
+      role: 'user',
+      content:
+        `Transcript:\n${transcript}\n\nMetrics:\n${JSON.stringify(metrics, null, 2)}\n\n` +
+        'Provide a JSON response with keys summary, tone_description, raw_tone, and ratings (clarity, confidence, pacing, emotional_intensity from 1-10).'
+    }
+  ];
+
+  const response = await axios.post(
+    'https://api.openai.com/v1/chat/completions',
+    {
+      model: 'gpt-3.5-turbo',
+      messages: prompt,
+      temperature: 0.7,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+    }
+  );
+
+  let data = response.data.choices[0].message.content.trim();
+  try {
+    data = JSON.parse(data);
+  } catch (e) {
+    data = { output: data };
+  }
+  return { ...data, raw_metrics: metrics };
+}
+
+ main
 app.post('/analyze', upload.single('video'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No video file uploaded' });
@@ -33,6 +94,13 @@ app.post('/analyze', upload.single('video'), async (req, res) => {
 
     const transcript = response.data.text;
 
+ od76wv-codex/build-backend-to-analyze-video-with-whisper-api
+    // Analyze the transcript locally for tone
+    const toneData = await analyzeTone(transcript);
+
+    // Combine transcript with tone analysis response
+    res.json({ transcript, ...toneData });
+
     // Send the transcript to the tone analysis service
     const toneRes = await axios.post(
       process.env.TONE_API_URL ||
@@ -42,6 +110,7 @@ app.post('/analyze', upload.single('video'), async (req, res) => {
 
     // Combine transcript with tone analysis response
     res.json({ transcript, ...toneRes.data });
+main
   } catch (err) {
     console.error(err.response ? err.response.data : err);
     res.status(500).json({ error: 'Failed to transcribe audio' });
